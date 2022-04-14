@@ -1,0 +1,46 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>TaskScheduler</name>
+    </assembly>
+    <members>
+        <member name="P:TaskScheduler.DTOs.BaseResponse.BaseResultResponeVm.Status">
+            <summary>
+            Результат виконання
+            </summary>
+        </member>
+        <member name="P:TaskScheduler.DTOs.BaseResponse.BaseResultResponeVm.Message">
+             <summary>
+            Текст повідомлення в разі не коректної відповіді
+             </summary>
+        </member>
+        <member name="P:TaskScheduler.DTOs.Tokken.TokenResponseVm.AccessToken">
+            <summary>
+            Токен досутпу
+            </summary>
+        </member>
+        <member name="T:TaskScheduler.Exceptions.StatusCodeException">
+            <summary>
+            Custom http status exception
+            </summary>
+        </member>
+        <member name="P:TaskScheduler.Exceptions.StatusCodeException.StatusCode">
+            <summary>
+            HTTP status code
+            </summary>
+        </member>
+        <member name="P:TaskScheduler.Exceptions.StatusCodeException.Description">
+            <summary>
+            exception description
+            </summary>
+        </member>
+        <member name="M:TaskScheduler.Extensions.AuthorizationPolicyExtension.AddAuthorizationPolicy(Microsoft.Extensions.DependencyInjection.IServiceCollection,Microsoft.Extensions.Configuration.IConfiguration)">
+            <summary>
+            Add authorization policies from config
+            </summary>
+            <param name="services">IServiceCollection</param>
+            <param name="config">IConfiguration</param>
+            <returns></returns>
+        </member>
+    </members>
+</doc>

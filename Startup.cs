@@ -7,49 +7,94 @@ using Microsoft.Extensions.Hosting;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
+using FluentScheduler;
+using MediatR;
+using Microsoft.AspNetCore.Http;
+using Microsoft.IdentityModel.Logging;
+using SuperAgentCore.Settings.BackGroundService;
+using SuperAgentCore.Settings.BearerToken;
+using TaskScheduler.Extensions;
+using TaskScheduler.MediatR;
+using TaskScheduler.MediatR.Behavior;
+using TaskScheduler.Services.BackGroundService;
+using TaskScheduler.Services.Security;
+using TaskScheduler.Services.TokenValidator;
+using TaskScheduler.Services.Tokken;
+using TaskScheduler.Swagger;
 
 namespace TaskScheduler
 {
     public class Startup
     {
-        public Startup(IConfiguration configuration)
+        private readonly IConfiguration _configuration;
+        private object _environment;
+        private readonly string _serviceName;
+        private readonly string _ver;
+        // This method gets called by the runtime. Use this method to add services to the container.
+        // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
+
+        public Startup(IConfiguration configuration, IWebHostEnvironment environment)
         {
-            Configuration = configuration;
+            _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
+            _environment = environment ?? throw new ArgumentNullException(nameof(environment));
+            _serviceName = AppDomain.CurrentDomain.FriendlyName;
+            _ver = GetType().Assembly.GetName().Version.ToString();
         }
 
         public IConfiguration Configuration { get; }
 
-        // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddRazorPages();
+            IdentityModelEventSource.ShowPII = true;
+            
+            services.Configure<BearerTokensSettings>(_configuration.GetSection("BearerTokensSettings"));
+           
+            services.Configure<BackgroundSettings>(_configuration.GetSection("BackgroundSettings"));
+            services.AddCoreSwagger(_serviceName, _ver, "Specify the SA token.");
+            services.AddSwaggerGen();
+            services.AddTokenAuthentication(_configuration);
+            services.AddAuthorizationPolicy(_configuration);
+            services.AddMediatR(typeof(Startup));
+            services.AddTransient(typeof(IPipelineBehavior<,>), typeof(LoggingBehavior<,>));
+            services.AddMvc();
+            // FluentValidation
+            services.AddMediatR(typeof(Startup).GetTypeInfo().Assembly);
+            services.AddFluentValidation(new[] { typeof(Startup).GetTypeInfo().Assembly, typeof(IPipelineBehavior<,>).Assembly });
+
+            services.AddAutoMapper(typeof(Startup));
+            services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+            services.AddTransient<ISecurityService, SecurityService>();
+            services.AddTransient<ITokkenFactoryService, TokkenFactoryService>();
+            services.AddTransient<ITokenValidatorService, TokenValidatorService>();
+            services.AddAuthentication();
+            services.AddControllers();
+            services.AddScoped<ISayHiService, SayHiService>();
+            var serviceProvider = services.BuildServiceProvider();
+            JobManager.Initialize(new JobRegistry(serviceProvider));
+            services.AddTransient(typeof(IPipelineBehavior<,>), typeof(LoggingBehavior<,>));
+
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
+            app.UsePathBase("/api");
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
             }
-            else
-            {
-                app.UseExceptionHandler("/Error");
-                // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
-                app.UseHsts();
-            }
-
-            app.UseHttpsRedirection();
-            app.UseStaticFiles();
-
-            app.UseRouting();
-
+            app.UseCoreSwagger("/api/swagger/v1/swagger.json", $"{_serviceName} API v.{_ver}");
+            app.UseAuthentication();
             app.UseAuthorization();
-
+            app.UseHttpsRedirection();
+            app.UseMiddleware(typeof(ErrorHandlingMiddleware));
+            app.UseRouting();
+            app.UseAuthorization();
             app.UseEndpoints(endpoints =>
             {
-                endpoints.MapRazorPages();
+                endpoints.MapControllers();
             });
         }
     }
