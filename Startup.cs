@@ -19,9 +19,6 @@ using TaskScheduler.Extensions;
 using TaskScheduler.MediatR;
 using TaskScheduler.MediatR.Behavior;
 using TaskScheduler.Services.BackGroundService;
-using TaskScheduler.Services.Security;
-using TaskScheduler.Services.TokenValidator;
-using TaskScheduler.Services.Tokken;
 using TaskScheduler.Swagger;
 
 namespace TaskScheduler
@@ -54,7 +51,6 @@ namespace TaskScheduler
             services.Configure<BackgroundSettings>(_configuration.GetSection("BackgroundSettings"));
             services.AddCoreSwagger(_serviceName, _ver, "Specify the SA token.");
             services.AddSwaggerGen();
-            services.AddTokenAuthentication(_configuration);
             services.AddAuthorizationPolicy(_configuration);
             services.AddMediatR(typeof(Startup));
             services.AddTransient(typeof(IPipelineBehavior<,>), typeof(LoggingBehavior<,>));
@@ -65,9 +61,6 @@ namespace TaskScheduler
 
             services.AddAutoMapper(typeof(Startup));
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
-            services.AddTransient<ISecurityService, SecurityService>();
-            services.AddTransient<ITokkenFactoryService, TokkenFactoryService>();
-            services.AddTransient<ITokenValidatorService, TokenValidatorService>();
             services.AddAuthentication();
             services.AddControllers();
             services.AddScoped<ISayHiService, SayHiService>();

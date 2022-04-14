@@ -25,9 +25,4 @@
     <PackageReference Include="Swashbuckle.AspNetCore.SwaggerUI" Version="6.3.0" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Services\Tokken\Request\" />
-    <Folder Include="Services\Tokken\Response\" />
-  </ItemGroup>
-
 </Project>

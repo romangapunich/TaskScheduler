@@ -14,11 +14,6 @@
             Текст повідомлення в разі не коректної відповіді
              </summary>
         </member>
-        <member name="P:TaskScheduler.DTOs.Tokken.TokenResponseVm.AccessToken">
-            <summary>
-            Токен досутпу
-            </summary>
-        </member>
         <member name="T:TaskScheduler.Exceptions.StatusCodeException">
             <summary>
             Custom http status exception
